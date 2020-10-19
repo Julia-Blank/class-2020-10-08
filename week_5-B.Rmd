@@ -115,6 +115,23 @@ Call the `simulate_election` function to simulate 100 elections and assign the r
 
 Finally, use `geom_density` to plot the distributions of two states of your choice. Make this plot beautiful!
 
+```{r}
+draws <- simulate_election(100)
+
+draws <- draws %>%
+  pivot_longer(cols = everything(), 
+               names_to = "state",
+               values_to = "trump_share")
+
+draws #%>%
+ # filter(state %in% c("Pennsylvania", "Ohio")) %>%
+  #ggplot(aes(x = trump_share, fill = state)) +
+  #geom_density(alpha = 0.8) +
+  #theme_linedraw()
+
+
+```
+
 **You should do this in steps. First, create the `draws` object. Second, try to successfully change the format of the dataset. Don't do everything all at once in one long section with many pipes!!**
 
 
@@ -123,6 +140,15 @@ Finally, use `geom_density` to plot the distributions of two states of your choi
 
 In Scene 1, we called this election simulation function a single time. Now, create a new `tibble` called `elections` with one column, `simulations`, that simulates one election in each of 1000 rows. Finally, use this `elections` object to create a column called `pa_win` that uses a `map` function to figure out whether Trump wins Pennsylvania in each of these simulated elections. Once you've verified that works, take the average of the `pa_win` column to see how likely Trump is to win Pennsylvania across all of these simulations.
 
+```{r}
+
+elections <- tibble(simulations = map(rep(1,1000), simulate_election))
+
+elections %>%
+ mutate(pa_win = map_lgl(simulations, ~ .$Pennsylvania > 50)) %>%
+  summarize(mean(pa_win))
+
+```
 
 
 ## Scene 3: Do it again!
@@ -131,6 +157,16 @@ First, repeat Scene 2 to make a column called `oh_win` that uses a `map` functio
 
 Once that is all done, summarise your dataset to estimate the probabilities of (1) winning PA, (2) winning OH, and (3) winning both.
 
+```{r}
+elections <- tibble(simulations = map(rep(1,1000), simulate_election))
+
+elections %>%
+  mutate(pa_win = map_lgl(simulations, ~ .$Pennsylvania > 50)) %>%
+  mutate(oh_win = map_lgl(simulations, ~ .$Ohio >50)) %>%
+  mutate(both = map_lgl(simulations, ~ .$Ohio & .$Pennsylvania > 50)) %>%
+  summarize(oh_avg = mean(oh_win), pa_avg = mean(pa_win), both_avg = mean(both))
+
+```
 
 
 ## Scene 4
